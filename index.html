@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium Login</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg,#667eea,#764ba2);
+}
+
+.container{
+    width:350px;
+    padding:40px;
+    border-radius:15px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+    color:white;
+}
+
+.container h2{
+    text-align:center;
+    margin-bottom:30px;
+    letter-spacing:1px;
+}
+
+.input-box{
+    position:relative;
+    margin-bottom:25px;
+}
+
+.input-box input{
+    width:100%;
+    padding:12px;
+    border:none;
+    outline:none;
+    border-radius:8px;
+    background:rgba(255,255,255,0.2);
+    color:white;
+    font-size:15px;
+}
+
+.input-box input::placeholder{
+    color:#ddd;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#fff;
+    color:#764ba2;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#ddd;
+}
+
+.extra{
+    text-align:center;
+    margin-top:15px;
+    font-size:14px;
+}
+
+.extra a{
+    color:#fff;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.extra a:hover{
+    text-decoration:underline;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+    <h2>Login</h2>
+    <form>
+        <div class="input-box">
+            <input type="email" placeholder="Enter Email" required>
+        </div>
+
+        <div class="input-box">
+            <input type="password" placeholder="Enter Password" required>
+        </div>
+
+        <button type="submit">Login</button>
+
+        <div class="extra">
+            Don't have an account? <a href="#">Sign Up</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
