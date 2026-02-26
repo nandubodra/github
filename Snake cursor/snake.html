@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Snake Cursor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            width: 100vw; 
+            height: 100vh; 
+            overflow: hidden; 
+            background: #0f0f0f; 
+            cursor: default;  /* Ab cursor dikhega */
+        }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="c"></canvas>
+    <script>
+        const canvas = document.getElementById('c');
+        const ctx = canvas.getContext('2d');
+        
+        let w, h;
+        const mouse = { x: 0, y: 0 };
+        const segments = [];
+        const totalSegments = 40;
+        
+        // Indian Flag Colors
+        const saffron = '#FF9933';
+        const white = '#FFFFFF';
+        const green = '#138808';
+        const gold = '#FFD700';
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        
+        mouse.x = w/2;
+        mouse.y = h/2;
+
+        // Initialize segments
+        for(let i=0; i<totalSegments; i++) {
+            segments.push({ x: w/2, y: h/2 });
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        let time = 0;
+
+        function draw() {
+            ctx.fillStyle = '#0f0f0f';
+            ctx.fillRect(0, 0, w, h);
+            time += 0.15;
+
+            // Update head towards mouse
+            const head = segments[0];
+            const dx = mouse.x - head.x;
+            const dy = mouse.y - head.y;
+            
+            head.x += dx * 0.12;
+            head.y += dy * 0.12;
+
+            // Speed calculate karne ke liye
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const scale = 1 + Math.min(dist * 0.003, 0.4);
+
+            // Body update
+            for(let i = 1; i < segments.length; i++) {
+                const prev = segments[i-1];
+                const curr = segments[i];
+                const ddx = prev.x - curr.x;
+                const ddy = prev.y - curr.y;
+                curr.x += ddx * 0.25;
+                curr.y += ddy * 0.25;
+            }
+
+            // Shadow draw karo
+            ctx.save();
+            ctx.translate(5, 5);
+            ctx.filter = 'blur(6px)';
+            ctx.globalAlpha = 0.3;
+            drawSnakeBody(scale);
+            ctx.restore();
+
+            // Snake body draw karo
+            drawSnakeBody(scale);
+            
+            // Head draw karo
+            drawHead(head.x, head.y, dx, dy, scale);
+
+            requestAnimationFrame(draw);
+        }
+
+        function drawSnakeBody(scale) {
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Green (Bottom)
+            ctx.beginPath();
+            ctx.lineWidth = 24 * scale;
+            ctx.strokeStyle = green;
+            drawCurve();
+            ctx.stroke();
+
+            // White (Middle)
+            ctx.beginPath();
+            ctx.lineWidth = 16 * scale;
+            ctx.strokeStyle = white;
+            drawCurve();
+            ctx.stroke();
+
+            // Saffron (Top)
+            ctx.beginPath();
+            ctx.lineWidth = 10 * scale;
+            ctx.strokeStyle = saffron;
+            drawCurve();
+            ctx.stroke();
+        }
+
+        function drawCurve() {
+            ctx.moveTo(segments[0].x, segments[0].y);
+            for(let i = 1; i < segments.length - 1; i++) {
+                const xc = (segments[i].x + segments[i+1].x) / 2;
+                const yc = (segments[i].y + segments[i+1].y) / 2;
+                ctx.quadraticCurveTo(segments[i].x, segments[i].y, xc, yc);
+            }
+            ctx.lineTo(segments[segments.length-1].x, segments[segments.length-1].y);
+        }
+
+        function drawHead(x, y, dx, dy, scale) {
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.scale(scale, scale);
+
+            // Head - Saffron
+            ctx.fillStyle = saffron;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 18, 12, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // White stripe on head
+            ctx.fillStyle = white;
+            ctx.fillRect(-5, -8, 8, 16);
+            
+            // Green stripe on head
+            ctx.fillStyle = green;
+            ctx.fillRect(-12, -5, 5, 10);
+
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.beginPath(); ctx.arc(8, -5, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(8, 5, 3, 0, Math.PI*2); ctx.fill();
+            
+            ctx.fillStyle = 'black';
+            ctx.beginPath(); ctx.arc(9, -5, 1.5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(9, 5, 1.5, 0, Math.PI*2); ctx.fill();
+
+            // Crown with bounce
+            const bounce = Math.sin(time) * 3;
+            ctx.fillStyle = gold;
+            ctx.shadowColor = gold;
+            ctx.shadowBlur = 10;
+            
+            ctx.beginPath();
+            ctx.moveTo(-8, -10);
+            ctx.lineTo(-12, -22 + bounce);
+            ctx.lineTo(-4, -14);
+            ctx.lineTo(0, -26 + bounce);
+            ctx.lineTo(4, -14);
+            ctx.lineTo(12, -22 + bounce);
+            ctx.lineTo(8, -10);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        draw();
+    </script>
+</body>
+</html>
