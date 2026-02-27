@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMW Style Speedometer</title>
+
+<style>
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:radial-gradient(circle at center,#111,#000);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Main Circle */
+.speedometer{
+    position:relative;
+    width:420px;
+    height:420px;
+    border-radius:50%;
+    background:radial-gradient(circle at center,#1a1a1a 40%, #0a0a0a 100%);
+    box-shadow:
+        inset 0 0 40px #000,
+        0 0 60px rgba(255,255,255,0.05);
+}
+
+/* Outer ring */
+.speedometer::before{
+    content:"";
+    position:absolute;
+    width:380px;
+    height:380px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,0.1);
+    top:20px;
+    left:20px;
+}
+
+/* Ticks */
+.tick{
+    position:absolute;
+    width:3px;
+    height:18px;
+    background:white;
+    top:20px;
+    left:50%;
+    transform-origin:bottom center;
+}
+
+/* Numbers */
+.number{
+    position:absolute;
+    color:white;
+    font-size:18px;
+    font-weight:500;
+    transform:translate(-50%,-50%);
+}
+
+/* BMW Blue Accent Arc */
+.arc{
+    position:absolute;
+    width:380px;
+    height:380px;
+    border-radius:50%;
+    border:10px solid transparent;
+    border-top:10px solid #00aaff;
+    border-right:10px solid #00aaff;
+    top:20px;
+    left:20px;
+    transform:rotate(-135deg);
+    box-shadow:0 0 20px #00aaff;
+}
+
+/* Needle */
+.needle{
+    position:absolute;
+    width:6px;
+    height:170px;
+    background:linear-gradient(to top,#ff0000,#ff4d4d);
+    top:50%;
+    left:50%;
+    transform-origin:bottom center;
+    transform:translate(-50%,-100%) rotate(-130deg);
+    border-radius:5px;
+    box-shadow:0 0 20px red;
+    transition:transform 0.15s ease-out;
+}
+
+/* Center Dot */
+.center{
+    position:absolute;
+    width:22px;
+    height:22px;
+    background:white;
+    border-radius:50%;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    z-index:10;
+}
+
+/* Speed Display */
+.speed-text{
+    position:absolute;
+    bottom:90px;
+    width:100%;
+    text-align:center;
+    color:white;
+    font-size:55px;
+    font-weight:bold;
+}
+
+.unit-side{
+    position:absolute;
+    right:40px;
+    top:50%;
+    transform:translateY(-50%);
+    color:#bbb;
+    font-size:18px;
+    letter-spacing:2px;
+}
+
+/* Glass Reflection */
+.glass{
+    position:absolute;
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background:linear-gradient(to bottom,rgba(255,255,255,0.12),transparent);
+    pointer-events:none;
+}
+</style>
+</head>
+<body>
+
+<div class="speedometer" id="speedometer">
+    <div class="arc"></div>
+    <div class="needle" id="needle"></div>
+    <div class="center"></div>
+    <div class="speed-text" id="speed">0</div>
+    <div class="unit-side">km/h</div>
+    <div class="glass"></div>
+</div>
+
+<script>
+const speedometer = document.getElementById("speedometer");
+const needle = document.getElementById("needle");
+const speedText = document.getElementById("speed");
+
+let maxSpeed = 240;
+let speed = 0;
+let increasing = true;
+
+/* Create ticks and numbers */
+for(let i=0; i<=maxSpeed; i+=20){
+    let angle = (i/maxSpeed)*260 - 130;
+
+    let tick = document.createElement("div");
+    tick.className="tick";
+    tick.style.transform=`translateX(-50%) rotate(${angle}deg)`;
+    speedometer.appendChild(tick);
+
+    let number = document.createElement("div");
+    number.className="number";
+
+    let radius = 160;
+    let rad = (angle)*Math.PI/180;
+    let x = 210 + radius*Math.sin(rad);
+    let y = 210 - radius*Math.cos(rad);
+
+    number.style.left = x+"px";
+    number.style.top = y+"px";
+    number.innerText = i;
+
+    speedometer.appendChild(number);
+}
+
+/* Automatic Animation */
+function animate(){
+    if(increasing){
+        speed += Math.random()*3;
+        if(speed >= maxSpeed) increasing = false;
+    } else {
+        speed -= Math.random()*2;
+        if(speed <= 0) increasing = true;
+    }
+
+    speed = Math.max(0, Math.min(maxSpeed, speed));
+    speedText.innerText = Math.floor(speed);
+
+    let rotation = (speed/maxSpeed)*260 - 130;
+    needle.style.transform = `translate(-50%,-100%) rotate(${rotation}deg)`;
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
