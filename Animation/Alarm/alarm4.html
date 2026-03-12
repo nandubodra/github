@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clock App</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
+
+body{
+    background:#000;
+    color:#fff;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+.container{
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+    padding-bottom:80px;
+}
+
+.title{
+    font-size:28px;
+    margin-bottom:20px;
+}
+
+input,button{
+    font-size:18px;
+}
+
+/* Alarm Style */
+
+.alarm{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.timeInput{
+    font-size:24px;
+    background:transparent;
+    border:none;
+    color:white;
+}
+
+.switch{
+    position:relative;
+    width:45px;
+    height:24px;
+}
+.switch input{opacity:0;}
+.slider{
+    position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    background:#555;
+    border-radius:30px;
+}
+.slider:before{
+    content:"";
+    position:absolute;
+    height:18px;width:18px;
+    left:3px;bottom:3px;
+    background:white;
+    border-radius:50%;
+    transition:.3s;
+}
+input:checked + .slider{
+    background:#4285F4;
+}
+input:checked + .slider:before{
+    transform:translateX(21px);
+}
+
+.fab{
+    position:fixed;
+    bottom:90px;
+    right:20px;
+    width:50px;height:50px;
+    background:#4285F4;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:28px;
+    cursor:pointer;
+}
+
+/* Bottom Nav */
+
+.bottomNav{
+    height:70px;
+    background:#111;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    position:fixed;
+    bottom:0;
+    width:100%;
+}
+
+.navBtn{
+    color:white;
+    text-align:center;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.activeNav{
+    color:#4285F4;
+}
+
+/* Timer & Stopwatch */
+
+.bigTime{
+    font-size:40px;
+    text-align:center;
+    margin:20px 0;
+}
+
+.center{
+    text-align:center;
+}
+
+button{
+    padding:8px 15px;
+    margin:5px;
+    background:#4285F4;
+    border:none;
+    color:white;
+    border-radius:5px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ALARM -->
+    <div id="alarmSection">
+        <div class="title">Alarm</div>
+        <div id="alarmList"></div>
+        <div class="fab" onclick="addAlarm()">+</div>
+    </div>
+
+    <!-- WORLD CLOCK -->
+    <div id="worldSection" style="display:none;">
+        <div class="title">World Clock</div>
+        <div id="worldClock"></div>
+    </div>
+
+    <!-- TIMER -->
+    <div id="timerSection" style="display:none;">
+        <div class="title">Timer</div>
+        <div class="center">
+            <input type="number" id="timerMinutes" placeholder="Minutes">
+            <div class="bigTime" id="timerDisplay">00:00</div>
+            <button onclick="startTimer()">Start</button>
+            <button onclick="stopTimer()">Stop</button>
+        </div>
+    </div>
+
+    <!-- STOPWATCH -->
+    <div id="stopwatchSection" style="display:none;">
+        <div class="title">Stopwatch</div>
+        <div class="center">
+            <div class="bigTime" id="stopwatchDisplay">00:00:00</div>
+            <button onclick="startStopwatch()">Start</button>
+            <button onclick="stopStopwatch()">Stop</button>
+            <button onclick="resetStopwatch()">Reset</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Bottom Navigation -->
+<div class="bottomNav">
+    <div class="navBtn activeNav" onclick="showSection('alarm')">Alarm</div>
+    <div class="navBtn" onclick="showSection('world')">World</div>
+    <div class="navBtn" onclick="showSection('timer')">Timer</div>
+    <div class="navBtn" onclick="showSection('stopwatch')">Stopwatch</div>
+</div>
+
+<script>
+
+/* Navigation */
+
+function showSection(name){
+    document.getElementById("alarmSection").style.display="none";
+    document.getElementById("worldSection").style.display="none";
+    document.getElementById("timerSection").style.display="none";
+    document.getElementById("stopwatchSection").style.display="none";
+
+    document.querySelectorAll(".navBtn").forEach(btn=>btn.classList.remove("activeNav"));
+
+    if(name==="alarm"){
+        alarmSection.style.display="block";
+        document.querySelectorAll(".navBtn")[0].classList.add("activeNav");
+    }
+    if(name==="world"){
+        worldSection.style.display="block";
+        document.querySelectorAll(".navBtn")[1].classList.add("activeNav");
+    }
+    if(name==="timer"){
+        timerSection.style.display="block";
+        document.querySelectorAll(".navBtn")[2].classList.add("activeNav");
+    }
+    if(name==="stopwatch"){
+        stopwatchSection.style.display="block";
+        document.querySelectorAll(".navBtn")[3].classList.add("activeNav");
+    }
+}
+
+/* Alarm */
+
+let alarms = [];
+let ringingIndex = null;
+
+let alarmSound = new Audio("https://image2url.com/r2/default/audio/1772393855111-13ceade5-ebe2-4cce-aed8-8d0c7eefb057.mp3");
+alarmSound.loop = true;
+
+function addAlarm(){
+    alarms.push({time:"07:00",active:false});
+    renderAlarms();
+}
+
+function renderAlarms(){
+    let list=document.getElementById("alarmList");
+    list.innerHTML="";
+
+    alarms.forEach((alarm,index)=>{
+        list.innerHTML+=`
+        <div class="alarm">
+            <input type="time" class="timeInput"
+            value="${alarm.time}"
+            onchange="changeTime(${index},this.value)">
+
+            <label class="switch">
+                <input type="checkbox"
+                ${alarm.active ? "checked" : ""}
+                onchange="toggleAlarm(${index},this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+        `;
+    });
+}
+
+function changeTime(index,value){
+    alarms[index].time = value;
+}
+
+function toggleAlarm(index,isOn){
+
+    alarms[index].active = isOn;
+
+    // 🔥 Agar OFF kiya aur yehi alarm ring kar raha hai
+    if(!isOn && ringingIndex === index){
+        alarmSound.pause();
+        alarmSound.currentTime = 0;
+        ringingIndex = null;
+    }
+}
+
+setInterval(()=>{
+    let now=new Date();
+    let current =
+        now.getHours().toString().padStart(2,"0")+":"+
+        now.getMinutes().toString().padStart(2,"0");
+
+    alarms.forEach((alarm,index)=>{
+
+        if(alarm.active && alarm.time===current){
+
+            // 🔥 Sirf ek baar ring ho
+            if(ringingIndex !== null) return;
+
+            ringingIndex = index;
+            alarmSound.play();
+        }
+
+    });
+
+},1000);
+
+/* World Clock */
+
+function updateWorld(){
+    let now=new Date();
+    document.getElementById("worldClock").innerHTML=`
+    India: ${now.toLocaleTimeString("en-IN")} <br>
+    USA: ${now.toLocaleTimeString("en-US",{timeZone:"America/New_York"})} <br>
+    UK: ${now.toLocaleTimeString("en-GB",{timeZone:"Europe/London"})}
+    `;
+}
+setInterval(updateWorld,1000);
+
+/* Timer */
+
+let timerInterval;
+let timerSeconds=0;
+
+function startTimer(){
+    let minutes=document.getElementById("timerMinutes").value;
+    timerSeconds=minutes*60;
+    timerInterval=setInterval(()=>{
+        if(timerSeconds<=0){
+            clearInterval(timerInterval);
+            alarmSound.play();
+        }else{
+            timerSeconds--;
+            let m=Math.floor(timerSeconds/60);
+            let s=timerSeconds%60;
+            timerDisplay.innerText=
+                m.toString().padStart(2,"0")+":"+
+                s.toString().padStart(2,"0");
+        }
+    },1000);
+}
+
+function stopTimer(){
+    clearInterval(timerInterval);
+}
+
+/* Stopwatch */
+let swInterval = null;
+let swSeconds = 0;
+
+const stopwatchDisplay = document.getElementById("stopwatchDisplay");
+
+function startStopwatch(){
+
+    // 🔥 Agar already chal raha hai to dobara start na ho
+    if(swInterval !== null) return;
+
+    swInterval = setInterval(()=>{
+        swSeconds++;
+
+        let h=Math.floor(swSeconds/3600);
+        let m=Math.floor((swSeconds%3600)/60);
+        let s=swSeconds%60;
+
+        stopwatchDisplay.innerText =
+        h.toString().padStart(2,"0")+":"+
+        m.toString().padStart(2,"0")+":"+
+        s.toString().padStart(2,"0");
+
+    },1000);
+}
+
+function stopStopwatch(){
+    clearInterval(swInterval);
+    swInterval = null;  // 🔥 important
+}
+
+function resetStopwatch(){
+    clearInterval(swInterval);
+    swInterval = null;
+    swSeconds = 0;
+    stopwatchDisplay.innerText="00:00:00";
+}
+
+</script>
+</body>
+</html>
